@@ -39,6 +39,7 @@ async function doPair(){$('#perr').textContent='';const r=await fetch('/api/pair
 async function refresh(){let s,ev;try{s=await (await fetch('/api/status')).json();ev=await (await fetch('/api/events')).json();}catch(e){$('#meta').textContent='agent not responding';return;}
  $('#meta').innerHTML=`v${esc(s.version)} · ${esc(s.device_name||'?')} · `+(s.online?'<span class="dot on"></span>online':'<span class="dot off"></span>offline')+(s.relay_url?' · '+esc(s.relay_url):'');
  $('#pair').style.display=s.paired?'none':'flex';
+ if(!$('#relay').value&&s.control_plane_url)$('#relay').value=s.control_plane_url;
  const el=$('#out');const bot=el.scrollHeight-el.scrollTop-el.clientHeight<30;
  el.innerHTML=ev.slice(-150).map(e=>`<div><span class="t">${esc(e.ts)}</span><span class="ty">${esc(e.type)}</span>${esc(e.text)}</div>`).join('');
  if(bot)el.scrollTop=el.scrollHeight;}
@@ -70,6 +71,7 @@ def make_server(runtime: AgentRuntime, storage: Storage, settings: Settings) -> 
                     "paired": state.paired,
                     "online": runtime.online,
                     "relay_url": runtime.relay_url or state.relay_url,
+                    "control_plane_url": settings.control_plane_url,
                 })
             elif self.path.startswith("/api/events"):
                 self._json(list(runtime.recent))
@@ -83,8 +85,9 @@ def make_server(runtime: AgentRuntime, storage: Storage, settings: Settings) -> 
             length = int(self.headers.get("Content-Length", 0))
             try:
                 req = json.loads(self.rfile.read(length) or b"{}")
+                relay_url = (req.get("relay_url") or "").strip() or settings.control_plane_url
                 state = storage.load()
-                claim(storage, state, code=req["code"], relay_url=req["relay_url"], device_name=settings.device_name)
+                claim(storage, state, code=req["code"], relay_url=relay_url, device_name=settings.device_name)
             except OnboardError as exc:
                 self._json({"detail": str(exc)}, 400)
             except Exception as exc:

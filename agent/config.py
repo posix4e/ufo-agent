@@ -22,7 +22,10 @@ class Settings(BaseSettings):
 
     device_name: str = Field(default_factory=platform.node)
 
-    # Control plane base URL (http/https). Set during pairing.
+    # Default control plane to pair against; override with UFO_AGENT_CONTROL_PLANE_URL.
+    control_plane_url: str = "https://ufo-cp.fly.dev"
+
+    # Control plane base URL stored after pairing.
     relay_url: str | None = None
 
     # Loopback-only local UI (no auth; can approve actions — never bind publicly).

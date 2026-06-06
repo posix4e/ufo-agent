@@ -48,12 +48,13 @@ def status() -> None:
 @app.command()
 def pair(
     code: str = typer.Option(..., help="Pairing code from the control plane"),
-    relay: str = typer.Option(..., help="Control plane base URL, e.g. http://host:8000"),
+    relay: str = typer.Option(None, help="Control plane URL (default: the hosted one)"),
 ) -> None:
-    """Manually claim a pairing code (product flow)."""
+    """Claim a pairing code. Defaults to the hosted control plane; --relay overrides."""
     settings = Settings()
     storage = Storage()
     state = storage.load()
+    relay = relay or settings.control_plane_url
     try:
         state = claim(storage, state, code=code, relay_url=relay, device_name=settings.device_name)
     except OnboardError as exc:
