@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Env / secrets
+.env
+*.local.yaml
+
+# CI-generated build version stamp (baked into the released exe only)
+agent/_buildinfo.py
+
+# PyInstaller
+*.spec
+
+# Editors / OS / test
+.vscode/
+.idea/
+.DS_Store
+.pytest_cache/
+.ruff_cache/

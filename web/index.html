@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ufo-agent — let your AI use this Windows PC, safely</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+         justify-content: center; gap: 28px; padding: 40px 20px;
+         font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: radial-gradient(1200px 600px at 50% -10%, #16203a 0%, #0d1117 60%); color: #c9d1d9; }
+  .badge { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #58a6ff; }
+  h1 { font-size: clamp(28px, 5vw, 46px); margin: 0; text-align: center; color: #e6edf3; line-height: 1.15; }
+  p.sub { margin: 0; max-width: 640px; text-align: center; color: #8b949e; font-size: 17px; line-height: 1.6; }
+  .download { display: inline-flex; align-items: center; gap: 12px; margin-top: 8px;
+              background: #238636; color: #fff; text-decoration: none; font-size: 19px; font-weight: 600;
+              padding: 16px 32px; border-radius: 12px; box-shadow: 0 8px 30px #23863644; transition: .15s; }
+  .download:hover { background: #2ea043; transform: translateY(-1px); }
+  .download small { font-weight: 400; opacity: .85; font-size: 13px; }
+  .meta { font-size: 13px; color: #6e7681; }
+  .steps { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 760px; margin-top: 8px; }
+  .step { flex: 1 1 200px; background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 16px 18px; }
+  .step b { color: #e6edf3; display: block; margin-bottom: 4px; }
+  .step span { color: #8b949e; font-size: 14px; line-height: 1.5; }
+  .warn { max-width: 640px; text-align: center; font-size: 13px; color: #d29922;
+          border: 1px solid #d2992244; border-radius: 8px; padding: 10px 14px; }
+  footer { font-size: 13px; color: #6e7681; }
+  footer a { color: #58a6ff; }
+</style>
+</head>
+<body>
+  <span class="badge">🛸 ufo-agent</span>
+  <h1>Let your AI use this Windows PC.<br>Safely.</h1>
+  <p class="sub">Install once, pair the machine, and a remote AI can drive it — while you keep
+     local approval, pause, and a live view of everything it does. Outbound-only: no inbound ports,
+     no RDP, no VPN.</p>
+
+  <a class="download" href="ufo-agent.exe" download>
+    ⬇ Download for Windows
+    <small>ufo-agent.exe · x64</small>
+  </a>
+  <div class="meta">Built and published straight from CI · <a href="https://github.com/posix4e/ufo-agent" style="color:#6e7681">source</a></div>
+
+  <div class="steps">
+    <div class="step"><b>1 · Download &amp; run</b><span>Grab <code>ufo-agent.exe</code> above and launch it. No Python, no setup.</span></div>
+    <div class="step"><b>2 · Pair</b><span>Enter the pairing code (or scan the QR) from your control plane.</span></div>
+    <div class="step"><b>3 · Approve</b><span>The machine comes online. You approve, deny, or pause what the AI does.</span></div>
+  </div>
+
+  <div class="warn">⚠ Experimental. The agent can control this PC. The exe is unsigned for now
+     (expect a Windows SmartScreen prompt). Only pair with a control plane you trust.</div>
+
+  <footer>
+    <a href="https://github.com/posix4e/ufo-agent">ufo-agent</a> ·
+    <a href="https://github.com/posix4e/ufo-control-plane">control plane</a> ·
+    MIT
+  </footer>
+</body>
+</html>

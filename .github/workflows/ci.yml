@@ -1,0 +1,114 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+# Allow the Pages deploy job to publish.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: pytest -q
+
+  build-exe:
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e . pyinstaller
+      # Stamp the build version: tag builds -> the tag; others -> 0.0.0+sha.
+      - name: Generate _buildinfo.py
+        shell: pwsh
+        run: |
+          $ref = "${{ github.ref }}"
+          if ($ref -like 'refs/tags/v*') { $ver = $ref -replace '^refs/tags/v','' }
+          else { $ver = "0.0.0+$('${{ github.sha }}'.Substring(0,7))" }
+          "BUILD_VERSION = `"$ver`"`nGIT_SHA = `"${{ github.sha }}`"`n" | Out-File -Encoding ascii agent/_buildinfo.py
+          Get-Content agent/_buildinfo.py
+      - name: Build ufo-agent.exe
+        run: >
+          pyinstaller --noconfirm --onefile --console --name ufo-agent
+          --hidden-import agent._buildinfo
+          packaging/entry_agent.py
+      - name: Smoke-test the exe
+        shell: pwsh
+        run: |
+          ./dist/ufo-agent.exe version
+          ./dist/ufo-agent.exe status
+      - name: Publish sha256
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist/ufo-agent.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  ufo-agent.exe" | Out-File -Encoding ascii dist/ufo-agent.exe.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ufo-agent-windows-x64
+          path: |
+            dist/ufo-agent.exe
+            dist/ufo-agent.exe.sha256
+
+  # Publish the download page WITH the freshly built exe onto GitHub Pages.
+  pages:
+    if: github.ref == 'refs/heads/main'
+    needs: build-exe
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ufo-agent-windows-x64
+          path: dist
+      - name: Assemble site (landing page + the built exe)
+        run: |
+          mkdir -p _site
+          cp web/index.html _site/index.html
+          cp dist/ufo-agent.exe _site/ufo-agent.exe
+          cp dist/ufo-agent.exe.sha256 _site/ufo-agent.exe.sha256
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  # Mirror the exe to a GitHub Release on a vX.Y.Z tag (releases/latest/download/...).
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-exe
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ufo-agent-windows-x64
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ufo-agent.exe
+            ufo-agent.exe.sha256
+          generate_release_notes: true
