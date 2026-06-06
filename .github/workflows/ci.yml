@@ -87,8 +87,6 @@ jobs:
           cp dist/ufo-agent.exe _site/ufo-agent.exe
           cp dist/ufo-agent.exe.sha256 _site/ufo-agent.exe.sha256
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
