@@ -37,20 +37,20 @@
      local approval, pause, and a live view of everything it does. Outbound-only: no inbound ports,
      no RDP, no VPN.</p>
 
-  <a class="download" href="ufo-agent.exe" download>
-    ⬇ Download for Windows
-    <small>ufo-agent.exe · x64</small>
+  <a class="download" href="ufo-agent-setup.exe" download>
+    ⬇ Download installer for Windows
+    <small>ufo-agent-setup.exe · x64</small>
   </a>
   <div class="meta">Built and published straight from CI · <a href="https://github.com/posix4e/ufo-agent" style="color:#6e7681">source</a></div>
 
   <div class="steps">
-    <div class="step"><b>1 · Download &amp; run</b><span>Grab <code>ufo-agent.exe</code> above and launch it. No Python, no setup.</span></div>
-    <div class="step"><b>2 · Pair</b><span>Enter the pairing code (or scan the QR) from your control plane.</span></div>
+    <div class="step"><b>1 · Install</b><span>Run <code>ufo-agent-setup.exe</code>. Installs in seconds, adds a tray icon, runs at login. No Python.</span></div>
+    <div class="step"><b>2 · Pair</b><span>Open the tray dashboard and enter the pairing code (or scan the QR) from your control plane.</span></div>
     <div class="step"><b>3 · Approve</b><span>The machine comes online. You approve, deny, or pause what the AI does.</span></div>
   </div>
 
-  <div class="warn">⚠ Experimental. The agent can control this PC. The exe is unsigned for now
-     (expect a Windows SmartScreen prompt). Only pair with a control plane you trust.</div>
+  <div class="warn">⚠ Experimental. The agent can control this PC. The installer is unsigned for now —
+     Windows SmartScreen will warn; click <b>More info → Run anyway</b>. Only pair with a control plane you trust.</div>
 
   <footer>
     <a href="https://github.com/posix4e/ufo-agent">ufo-agent</a> ·

@@ -6,7 +6,6 @@ on:
     tags: ["v*"]
   pull_request:
 
-# Allow the Pages deploy job to publish.
 permissions:
   contents: read
 
@@ -22,7 +21,7 @@ jobs:
       - run: ruff check .
       - run: pytest -q
 
-  build-exe:
+  build-installer:
     runs-on: windows-latest
     needs: test
     steps:
@@ -32,40 +31,48 @@ jobs:
           python-version: "3.12"
       - run: pip install -e . pyinstaller
       # Stamp the build version: tag builds -> the tag; others -> 0.0.0+sha.
-      - name: Generate _buildinfo.py
+      - name: Generate _buildinfo.py + version
         shell: pwsh
         run: |
           $ref = "${{ github.ref }}"
           if ($ref -like 'refs/tags/v*') { $ver = $ref -replace '^refs/tags/v','' }
           else { $ver = "0.0.0+$('${{ github.sha }}'.Substring(0,7))" }
           "BUILD_VERSION = `"$ver`"`nGIT_SHA = `"${{ github.sha }}`"`n" | Out-File -Encoding ascii agent/_buildinfo.py
+          ($ver -split '\+')[0] | Out-File -Encoding ascii version.txt   # numeric-only for the installer
           Get-Content agent/_buildinfo.py
-      - name: Build ufo-agent.exe
+      - name: Make icon
+        run: python packaging/make_icon.py packaging/icon.ico
+      # Windowed (no console) onedir build — the tray app. onedir is friendlier
+      # to package than onefile.
+      - name: Build windowed tray app
         run: >
-          pyinstaller --noconfirm --onefile --console --name ufo-agent
+          pyinstaller --noconfirm --onedir --windowed --name ufo-agent
+          --icon packaging/icon.ico
           --hidden-import agent._buildinfo
           packaging/entry_agent.py
-      - name: Smoke-test the exe
+      - name: Build installer (Inno Setup)
         shell: pwsh
         run: |
-          ./dist/ufo-agent.exe version
-          ./dist/ufo-agent.exe status
+          choco install innosetup -y --no-progress | Out-Null
+          $ver = (Get-Content version.txt).Trim()
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$ver packaging\ufo-agent.iss
+          Get-ChildItem installer
       - name: Publish sha256
         shell: pwsh
         run: |
-          $hash = (Get-FileHash dist/ufo-agent.exe -Algorithm SHA256).Hash.ToLower()
-          "$hash  ufo-agent.exe" | Out-File -Encoding ascii dist/ufo-agent.exe.sha256
+          $h = (Get-FileHash installer/ufo-agent-setup.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  ufo-agent-setup.exe" | Out-File -Encoding ascii installer/ufo-agent-setup.exe.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: ufo-agent-windows-x64
+          name: ufo-agent-setup
           path: |
-            dist/ufo-agent.exe
-            dist/ufo-agent.exe.sha256
+            installer/ufo-agent-setup.exe
+            installer/ufo-agent-setup.exe.sha256
 
-  # Publish the download page WITH the freshly built exe onto GitHub Pages.
+  # Publish the download page WITH the freshly built installer onto GitHub Pages.
   pages:
     if: github.ref == 'refs/heads/main'
-    needs: build-exe
+    needs: build-installer
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -78,14 +85,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: ufo-agent-windows-x64
+          name: ufo-agent-setup
           path: dist
-      - name: Assemble site (landing page + the built exe)
+      - name: Assemble site (landing page + the built installer)
         run: |
           mkdir -p _site
           cp web/index.html _site/index.html
-          cp dist/ufo-agent.exe _site/ufo-agent.exe
-          cp dist/ufo-agent.exe.sha256 _site/ufo-agent.exe.sha256
+          cp dist/ufo-agent-setup.exe _site/ufo-agent-setup.exe
+          cp dist/ufo-agent-setup.exe.sha256 _site/ufo-agent-setup.exe.sha256
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -93,20 +100,19 @@ jobs:
       - id: deploy
         uses: actions/deploy-pages@v4
 
-  # Mirror the exe to a GitHub Release on a vX.Y.Z tag (releases/latest/download/...).
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build-exe
+    needs: build-installer
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: ufo-agent-windows-x64
+          name: ufo-agent-setup
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ufo-agent.exe
-            ufo-agent.exe.sha256
+            ufo-agent-setup.exe
+            ufo-agent-setup.exe.sha256
           generate_release_notes: true

@@ -22,9 +22,11 @@ and lets a remote AI drive it, with local approval and always-visible activity.
 
 ## Install (end user)
 
-Visit **https://posix4e.github.io/ufo-agent** and download `ufo-agent.exe`
-(built and published straight from CI). No Python required. *(Unsigned for now —
-expect a SmartScreen prompt; code-signing is on the roadmap.)*
+Visit **https://posix4e.github.io/ufo-agent** and run `ufo-agent-setup.exe`
+(built and published straight from CI). It installs a tray app that runs at
+login — no Python, no terminal. *(Installer is unsigned for now — SmartScreen
+will warn; click **More info → Run anyway**. Code-signing is on the roadmap;
+MSIX is deferred because it requires a trusted cert to install at all.)*
 
 ## Run (dev)
 
@@ -38,8 +40,8 @@ python -m agent status
 ## Layout
 
 ```
-agent/        CLI (cli), config (pairing / relay / automation / ui grow here)
-packaging/    PyInstaller entry point for ufo-agent.exe
+agent/        tray app (tray), local dashboard, CLI (cli, dev/debug), config
+packaging/    PyInstaller entry point, Inno Setup script, icon generator
 web/          GitHub Pages download page
 tests/        pytest
 ```

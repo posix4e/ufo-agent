@@ -1,9 +1,10 @@
-"""PyInstaller entry point for ufo-agent.exe.
+"""PyInstaller entry point for the installed app — launches the tray UI.
 
-A stable analysis root for PyInstaller; delegates to the Typer CLI.
+The shipped exe is the windowed tray app. The typer CLI (version/status, and
+later pair/start) stays available for dev/debug via `python -m agent`.
 """
 
-from agent.cli import app
+from agent.tray import main
 
 if __name__ == "__main__":
-    app()
+    main()
