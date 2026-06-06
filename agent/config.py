@@ -28,3 +28,10 @@ class Settings(BaseSettings):
     # Loopback-only local UI (no auth; can approve actions — never bind publicly).
     local_ui_host: str = "127.0.0.1"
     local_ui_port: int = 8766
+
+    # POC: discover the control plane on the tailnet and auto-enroll (no code).
+    tailnet_autopair: bool = True
+
+    heartbeat_seconds: float = 20.0
+    reconnect_min_seconds: float = 1.0
+    reconnect_max_seconds: float = 30.0
